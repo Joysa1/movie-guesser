@@ -1,10 +1,11 @@
-import {RouteObject} from "react-router";
-import App from "./App";
-import React from "react";
+import React from 'react';
+import { RouteObject } from 'react-router';
+
+import App from './App';
 
 export const routes: RouteObject[] = [
-    {
-        path: "/",
-        element: <App/>,
-    },
-]
+  {
+    path: '/',
+    element: <App />,
+  },
+];

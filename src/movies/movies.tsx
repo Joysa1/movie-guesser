@@ -1,44 +1,48 @@
-import React, {memo} from "react";
-import {useQuery} from "@tanstack/react-query";
-import {getMovies} from "./_api/movie/movie.api.service";
-import {MovieModel} from "./_models/movie.model";
-import {AxiosResponse} from "axios";
-import BaseResponseModel from "../shared/_models/base.response.model";
-import Autcomplete from "../components/Autcomplete";
+import React, { memo, useCallback, useState } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+import { AxiosResponse } from 'axios';
+
+import Autocomplete from '../components/Autocomplete';
+import { AutocompleteOptionsModel } from '../shared/_models/autocomplete-options.model';
+import BaseResponseModel from '../shared/_models/base.response.model';
+import { searchMovie } from './_api/movie/movie.api.service';
+import { MovieModel } from './_models/movie.model';
+import { MovieMapper } from './_models/movie-mapper';
 
 function Movies() {
-    const query = useQuery<AxiosResponse<BaseResponseModel<MovieModel[]>>>(['movies'], getMovies)
+  const [searchQuery, setSearchQuery] = useState('');
 
-    if (query.isLoading) {
-        return <div>
-            Loading...
-        </div>
-    }
-    console.log(query.data?.data.results);
+  const query = useQuery<AxiosResponse<BaseResponseModel<MovieModel[]>>>(
+    ['movies', searchQuery],
+    async () => await searchMovie(searchQuery),
+    {
+      enabled: Boolean(searchQuery),
+    },
+  );
 
+  const onChange = useCallback((event: any, newValue: AutocompleteOptionsModel | null) => {
+    console.log(newValue);
+  }, []);
 
+  const onInputChange = useCallback((event: any, newValue: string | null) => {
+    setSearchQuery(newValue!);
+  }, []);
 
-    return <div>
-        Movies
-       {/*@ts-ignore*/}
-        <Autcomplete {...{
-            label: 'Movies',
-            options: query.data?.data.results.map((item) => {
-                return {
-                    label: item.title,
-                    id: item.id
-                }
-            })
-        }}/>
-        {
-            // @ts-ignore
-            query.data?.data.results.map((item) => {
-                return <div>
-                    {item.title}
-                </div>
-            })
-        }
+  return (
+    <div>
+      Movies
+      <Autocomplete
+        {...{
+          label: 'Movies',
+          isLoading: query.isLoading,
+          options: query.isLoading ? [] : query.data!.data.results.map(MovieMapper.mapMovieModelToAutocompleteOptions),
+          onChange,
+          onInputChange,
+        }}
+      />
     </div>
+  );
 }
 
 export default memo(Movies);
